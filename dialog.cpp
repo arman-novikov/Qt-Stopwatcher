@@ -1,19 +1,23 @@
 #include "dialog.h"
 
 #include <QChar>
+#include <QPalette>
 
 Dialog::Dialog(QWidget *parent)
-    : QDialog(parent), isLaunched(false), wasLaunched(false), timePassedStorage(0)
+    : QDialog(parent), timePassedStorage(0), isLaunched(false), wasLaunched(false)
 {
-    mainLayout = new QGridLayout(this);
-    timeLine = new QLabel("0:00:00:000", this);
+    timeLine = new QLabel("00:00:00:000", this);
     timeLine->setAlignment(Qt::AlignCenter);
+    setTimeLineColor(Qt::darkGreen);
+
     launchButton = new QPushButton("start", this);
     resetButton = new QPushButton("reset", this);
+
+    mainLayout = new QGridLayout(this);
     mainLayout->addWidget(timeLine,0, 0, 1, 2);
     mainLayout->addWidget(launchButton, 1, 0);
     mainLayout->addWidget(resetButton, 1, 1);
-    this->setLayout(mainLayout);
+    setLayout(mainLayout);
 
     timeLineUpdateOffset = new QTimer(this);
 
@@ -24,33 +28,37 @@ Dialog::Dialog(QWidget *parent)
 
 void Dialog::launchButtonPressed()
 {
-    if (!isLaunched && !wasLaunched) {
+    if (!wasLaunched) {
         _time.restart();
         timeLineUpdateOffset->start(20);
-       this->isLaunched = true;
-       this->wasLaunched = true;
+       isLaunched = true;
+       wasLaunched = true;
+       setTimeLineColor(Qt::darkRed);
        launchButton->setText("pause");
     } else if (isLaunched) {
         timePassedStorage += _time.elapsed();
         timeLineUpdateOffset->stop();
-        this->isLaunched = false;
+        isLaunched = false;
         launchButton->setText("remuse");
+        setTimeLineColor(Qt::darkYellow);
     } else if (!isLaunched) {
          _time.start();
          timeLineUpdateOffset->start(20);
-        this->isLaunched = true;
+        isLaunched = true;
         launchButton->setText("pause");
+        setTimeLineColor(Qt::darkRed);
     }
 }
 
 void Dialog::resetButtonPressed()
 {
     timeLineUpdateOffset->stop();
-    this->launchButton->setText("start");
-    this->isLaunched = false;
-    this->wasLaunched = false;
-    this->timePassedStorage = 0;
-    this->timeLine->setText("0:00:00:000");
+    launchButton->setText("start");
+    isLaunched = false;
+    wasLaunched = false;
+    timePassedStorage = 0;
+    timeLine->setText("00:00:00:000");
+    setTimeLineColor(Qt::darkGreen);
 }
 
 void Dialog::updateTimeLine()
@@ -66,7 +74,15 @@ void Dialog::updateTimeLine()
             .arg(minutes, 2, 10, QChar('0'))
             .arg(seconds, 2, 10, QChar('0'))
             .arg(mseconds, 3, 10, QChar('0'));
-    this->timeLine->setText(res);
+    timeLine->setText(res);
+}
+
+template <typename Color>
+void Dialog::setTimeLineColor(const Color &c)
+{
+    QPalette palette;
+    palette.setColor(QPalette::WindowText, c);
+    timeLine->setPalette(palette);
 }
 
 Dialog::~Dialog()

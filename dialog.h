@@ -16,13 +16,15 @@ public:
     Dialog(QWidget *parent = nullptr);
     ~Dialog();
 private:
+    template<typename Color>
+        void setTimeLineColor(const Color &c);
     QGridLayout *mainLayout;
     QLabel      *timeLine;
     QPushButton *launchButton, *resetButton;
-    bool isLaunched, wasLaunched;
-    QTime _time;
     QTimer *timeLineUpdateOffset;
+    QTime _time;
     qint64 timePassedStorage;
+    bool isLaunched, wasLaunched;
 private slots:
     void launchButtonPressed();
     void resetButtonPressed();
